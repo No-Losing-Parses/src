@@ -1,11 +1,10 @@
 import sys
 import os
-import nltk
-from nltk.corpus import stopwords
+import spacy
 from spacy.matcher import Matcher
 from spacy.lang.en import stop_words
-import spacy
-
+from nltk.corpus import wordnet
+import nltk
 from spacy.lang.en import English
 
 # token attrs:
@@ -56,6 +55,7 @@ class Story:
         self.date = date
         self.text = text
         self.entities = [(ent.text, ent.label_) for ent in self.text.ents]
+        self.sentences = list(self.text.sents)
 
     def print_attrs(self):
         print(f'STORYID: {self.story_id}')
@@ -63,6 +63,7 @@ class Story:
         print(f'DATE: {self.date}')
         print(f'ENTITIES: {self.entities}')
         print(f'TEXT: {self.text.text}\n')
+        print(f'SENTENCES: {self.sentences}\n')
 
 
 class Question:
@@ -71,16 +72,67 @@ class Question:
         self.question = question
         self.difficulty = difficulty
         self.story = story
+        self.type = None
+        self.answer_type = None
         self.answer = ""
         self.entities = [(ent.text, ent.label_) for ent in self.question.ents]
+        self.types = {
+            'WHO': ['whom', 'who', 'whose'], 
+            'WHAT': ['what'],
+            'WHEN': ['when'],
+            'WHY': ['why'],
+            'WHICH': ['which'],
+            'WHERE': ['where'],
+            #wordnet can be used to gather similar words to this
+            'MEASURE': [
+                'many', 'much',
+                'often', 'few',
+                'long', 'short', 'tall', 'fast', 'slow',
+                'high', 'low', 
+                'big', 'small',
+                'close', 'near', 'far', 
+                'new', 'old',
+                'heavy', 'light'
+                ],
+            'HOW': ['how'],
+        }
+        self.answer_types = {
+            'WHO': ['PERSON', 'NORP', 'ORG', 'GPE'],
+            #'WHAT': [''], what time is it? what is an iphone? what was the war?
+            'WHEN': ['TIME', 'DATE'],
+            #'WHY': [] usually what comes after because
+            #'WHICH': [] could really be any of the types
+            'WHERE': ['LOC', 'FAC', 'ORG', 'GPE', 'PRODUCT', 'EVENT'],
+            'MEASURE': ['PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL']
+            #'HOW': []
+        }
+        self.decide_on_question_type()
 
     def print_attrs(self):
         print(f'QUESTIONID: {self.question_id}')
         print(f'QUESTION: {self.question.text}')
+        print(f'QUESTION_TYPE: {self.type}')
+        print(f'ANSWER_TYPE: {self.answer_type}')
         print(f'ENTITIES: {self.entities}')
         print(f'DIFFICULTY: {self.difficulty}')
         print(f'ANSWER: {self.answer}')
         print(f'STORYID: {self.story.story_id}\n')
+
+    def decide_on_question_type(self):
+        question = self.question.text.lower()
+        for q_type in self.types:
+            for expression in self.types[q_type]:
+                if expression == 'many':
+                    if expression in question and 'how' in question:
+                        self.type = q_type
+                        break
+                elif expression in question:
+                    self.type = q_type
+                    if q_type in self.answer_types:
+                        self.answer_type = self.answer_types[q_type]
+                    break
+            if self.type:
+                break
 
 
 def read_file_lines(fp):
@@ -133,18 +185,83 @@ def main():
                 questions[story_id].append(question)
             else:
                 questions[story_id] = [question]
+            words_from_question_non_syms = set([
+                word for word in question.question if not word.is_stop and (word.is_alpha or word.is_digit or word.is_currency or not word.is_punct)
+                ])
+            verbs_from_question_non_syms = set([
+                word for word in question.question if not word.is_stop and word.pos_ == 'VERB'
+                ])
+            words_from_question = set()
+            verbs_from_question = set()
+            for word in words_from_question_non_syms:
+                #did this help TODO
+                #if word.pos_ == 'VERB':
+                for syn in wordnet.synsets(word.lemma_):
+                    for lm in syn.lemmas():
+                        name = lm.name().split('_')
+                        for spot in name:
+                            words_from_question.add(spot)
+                else:
+                    words_from_question.add(word.lemma_)
+            for word in verbs_from_question_non_syms:
+                #did this help TODO
+                #if word.pos_ == 'VERB':
+                for syn in wordnet.synsets(word.lemma_):
+                    for lm in syn.lemmas():
+                        name = lm.name().split('_')
+                        for spot in name:
+                            verbs_from_question.add(spot)
+                else:
+                    verbs_from_question.add(word.lemma_)
+            noun_phrases_from_question = [
+                    set(str(chunk).split()) for chunk in list(question.question.noun_chunks)
+                    ]
+            #question.print_attrs()
+            #print(words_from_question)
+            scores = []
+            high_score = 0
+            for sentence in story.sentences:
+                words_from_sentence = set([
+                word.lemma_ for word in sentence if not word.is_stop and (word.is_alpha or word.is_digit or word.is_currency or not word.is_punct)
+                ])
+                verbs_from_sentence = set([
+                word.lemma_ for word in sentence if not word.is_stop and word.pos_ == 'VERB'
+                ])
+                noun_phrases_from_sentence = [
+                    set(str(chunk).split()) for chunk in list(sentence.noun_chunks)
+                    ]
+                given_score = len(words_from_sentence.intersection(words_from_question))
+                #maybe to big of verb weight
+                given_score += len(verbs_from_question.intersection(verbs_from_sentence)) * 5 #verb weight
+                #did not help I dont thing
+                for question_noun_phase in noun_phrases_from_question:
+                    for sentence_noun_phrase in noun_phrases_from_sentence:
+                        given_score += len(sentence_noun_phrase.intersection(question_noun_phase)) * 2 #noun phrase weight
+                if given_score > high_score:
+                    high_score = given_score
+                scores.append(given_score)
+            #print(words_from_question)
+            print(question.question)
+            for i, score in enumerate(scores):
+                if score == high_score:
+                    print(story.sentences[i])
+                    #print([(ent.text, ent.label_) for ent in story.sentences[i].ents])
+                
+                
 
 
 
-        # for story_i in stories:
+
+        #for story_i in stories:
         #     stories[story_i].print_attrs()
-        #
-        # for question_file_i in questions:
-        #     for question_i in questions[question_file_i]:
-        #         question_i.print_attrs()
+        
+        #for question_file_i in questions:
+        #    for question_i in questions[question_file_i]:
+        #        question_i.print_attrs()
 
 
 if __name__ == "__main__":
     main()
+#nltk.download()
 
 
