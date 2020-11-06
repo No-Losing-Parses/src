@@ -341,11 +341,6 @@ def main():
             for i, score in enumerate(scores):
                 if score == high_score:
                     question.answer = story.sentences[i]
-                    # print([(ent.text, ent.label_) for ent in story.sentences[i].ents])
-
-        #for story_i in stories:
-        #     stories[story_i].print_attrs()
-
 
     for question_file_i in questions:
         print_responses(questions[question_file_i])
