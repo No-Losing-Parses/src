@@ -166,6 +166,12 @@ def read_file_lines(fp):
 
 def print_responses(questions):
     for i, question in enumerate(questions):
+        word_list = question.answer.split()
+        for j, word in enumerate(word_list):
+            if word in question.question.text:
+                word_list[j] = ''
+        question.answer = ' '.join(word_list)
+
         print(f'QuestionID: {question.question_id}')
         print(f'Answer: {question.answer}\n')
 
@@ -319,7 +325,7 @@ def main():
             #print(words_from_question)
             for i, score in enumerate(scores):
                 if score == high_score:
-                    question.answer = story.sentences[i]
+                    question.answer = story.sentences[i].text
 
     for question_file_i in questions:
         print_responses(questions[question_file_i])
