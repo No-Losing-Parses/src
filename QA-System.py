@@ -77,14 +77,14 @@ class Question:
         self.answer = ""
         self.entities = [(ent.text, ent.label_) for ent in self.question.ents]
         self.types = {
-            'WHO': ['whom', 'who', 'whose'], 
+            'WHO': {'whom', 'who', 'whose'}, 
             'WHAT': ['what'],
             'WHEN': ['when'],
             'WHY': ['why'],
             'WHICH': ['which'],
             'WHERE': ['where'],
             #wordnet can be used to gather similar words to this
-            'MEASURE': [
+            'MEASURE': {
                 'many', 'much',
                 'often', 'few',
                 'long', 'short', 'tall', 'fast', 'slow',
@@ -93,17 +93,39 @@ class Question:
                 'close', 'near', 'far', 
                 'new', 'old',
                 'heavy', 'light'
-                ],
+                },
             'HOW': ['how'],
         }
+        self.measure_map = {
+            'many': ['CARDINAL', 'QUANTITY', 'PERCENT'], #'QUANTITY'
+            'much': ['MONEY', 'QUANTITY', 'PERCENT'],
+            'often': ['TIME', 'DATE', 'PERCENT'],
+            'few': ['QUANTITY', 'CARDINAL'],
+            'long': ['TIME', 'DATE', 'QUANTITY'],
+            'close': ['TIME', 'DATE', 'QUANTITY'],
+            'near': ['TIME', 'DATE', 'QUANTITY'],
+            'far': ['TIME', 'DATE', 'QUANTITY'],
+            'new': ['TIME', 'DATE'],
+            'old': ['TIME', 'DATE'],
+            'heavy': ['QUANTITY'],
+            'light': ['QUANTITY'],
+            'short': ['QUANTITY'],
+            'tall': ['QUANTITY'],
+            'fast': ['QUANTITY'],
+            'slow': ['QUANTITY'],
+            'big': ['QUANTITY','PERCENT', 'CARDINAL'],
+            'small': ['QUANTITY', 'PERCENT', 'CARDINAL'],
+            'high': ['QUANTITY', 'CARDINAL'],
+            'low': ['QUANTITY', 'CARDINAL']
+        }
         self.answer_types = {
-            'WHO': ['PERSON', 'NORP', 'ORG', 'GPE'],
+            'WHO': {'PERSON', 'NORP', 'ORG', 'GPE'},
             #'WHAT': [''], what time is it? what is an iphone? what was the war?
-            'WHEN': ['TIME', 'DATE'],
+            'WHEN': {'TIME', 'DATE'},
             #'WHY': [] usually what comes after because
             #'WHICH': [] could really be any of the types
-            'WHERE': ['LOC', 'FAC', 'ORG', 'GPE', 'PRODUCT', 'EVENT'],
-            'MEASURE': ['PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL']
+            'WHERE': {'LOC', 'FAC', 'ORG', 'GPE', 'PRODUCT', 'EVENT'},
+            'MEASURE': {} #'PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL'
             #'HOW': []
         }
         self.decide_on_question_type()
@@ -122,9 +144,11 @@ class Question:
         question = self.question.text.lower()
         for q_type in self.types:
             for expression in self.types[q_type]:
-                if expression == 'many':
+                if expression in self.types['MEASURE']:
                     if expression in question and 'how' in question:
                         self.type = q_type
+                        if q_type in self.answer_types:
+                            self.answer_type = self.measure_map[expression]
                         break
                 elif expression in question:
                     self.type = q_type
@@ -216,7 +240,7 @@ def main():
             noun_phrases_from_question = [
                     set(str(chunk).split()) for chunk in list(question.question.noun_chunks)
                     ]
-            #question.print_attrs()
+            question.print_attrs()
             #print(words_from_question)
             scores = []
             high_score = 0
@@ -232,11 +256,58 @@ def main():
                     ]
                 given_score = len(words_from_sentence.intersection(words_from_question))
                 #maybe to big of verb weight
-                given_score += len(verbs_from_question.intersection(verbs_from_sentence)) * 5 #verb weight
+                given_score += len(verbs_from_question.intersection(verbs_from_sentence)) *5 #verb weight
                 #did not help I dont thing
                 for question_noun_phase in noun_phrases_from_question:
                     for sentence_noun_phrase in noun_phrases_from_sentence:
-                        given_score += len(sentence_noun_phrase.intersection(question_noun_phase)) * 2 #noun phrase weight
+                        given_score += len(sentence_noun_phrase.intersection(question_noun_phase))*2 #noun phrase weight
+                
+                #question types
+                sentence_entities = [(entity.text, entity.label_) for entity in sentence.ents]
+                if question.type is 'WHEN':
+                    index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
+                    found = False
+                    for entity in sentence_entities:
+                        if entity[1] in question.answer_type:
+                            given_score += 7*index #when weight
+                            found = True
+                            break
+                        index -= 1
+                    if not found:
+                        given_score = 0
+                if question.type is 'WHERE':
+                    index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
+                    found = False
+                    for entity in sentence_entities:
+                        if entity[1] in question.answer_type:
+                            given_score += 7*index #when weight
+                            found = True
+                            break
+                        index -= 1
+                    if not found:
+                        given_score = 0
+                if question.type is 'WHO':
+                    index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
+                    found = False
+                    for entity in sentence_entities:
+                        if entity[1] in question.answer_type:
+                            given_score += 7*index #when weight
+                            found = True
+                            break
+                        index -= 1
+                    if not found:
+                        given_score = 0
+                if question.type is 'MEASURE':
+                    index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 5 else 5
+                    found = False
+                    for entity in sentence_entities:
+                        if entity[1] in question.answer_type:
+                            given_score += 5*index #when weight
+                            found = True
+                            break
+                        index -= 1
+                    if not found:
+                        given_score = 0
                 if given_score > high_score:
                     high_score = given_score
                 scores.append(given_score)
@@ -245,7 +316,7 @@ def main():
             for i, score in enumerate(scores):
                 if score == high_score:
                     print(story.sentences[i])
-                    #print([(ent.text, ent.label_) for ent in story.sentences[i].ents])
+                    print([(ent.text, ent.label_) for ent in story.sentences[i].ents])
                 
                 
 
