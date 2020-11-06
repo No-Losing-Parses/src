@@ -164,6 +164,11 @@ def read_file_lines(fp):
         return [line.strip() for line in file.readlines()]
 
 
+def print_responses(questions):
+    for i, question in enumerate(questions):
+        print(f'QuestionID: {question.question_id}')
+        print(f'Answer: {question.answer}\n')
+
 def main():
     nlp_engine = spacy.load('en_core_web_md')
     matcher = Matcher(nlp_engine.vocab)
@@ -240,7 +245,7 @@ def main():
             noun_phrases_from_question = [
                     set(str(chunk).split()) for chunk in list(question.question.noun_chunks)
                     ]
-            question.print_attrs()
+            # question.print_attrs()
             #print(words_from_question)
             scores = []
             high_score = 0
@@ -264,7 +269,7 @@ def main():
                 
                 #question types
                 sentence_entities = [(entity.text, entity.label_) for entity in sentence.ents]
-                if question.type is 'WHEN':
+                if question.type == 'WHEN':
                     index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
                     found = False
                     for entity in sentence_entities:
@@ -275,7 +280,7 @@ def main():
                         index -= 1
                     if not found:
                         given_score = 0
-                if question.type is 'WHERE':
+                if question.type == 'WHERE':
                     index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
                     found = False
                     for entity in sentence_entities:
@@ -286,7 +291,7 @@ def main():
                         index -= 1
                     if not found:
                         given_score = 0
-                if question.type is 'WHO':
+                if question.type == 'WHO':
                     index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 7 else 7
                     found = False
                     for entity in sentence_entities:
@@ -297,7 +302,7 @@ def main():
                         index -= 1
                     if not found:
                         given_score = 0
-                if question.type is 'MEASURE':
+                if question.type == 'MEASURE':
                     index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 5 else 5
                     found = False
                     for entity in sentence_entities:
@@ -312,27 +317,15 @@ def main():
                     high_score = given_score
                 scores.append(given_score)
             #print(words_from_question)
-            print(question.question)
             for i, score in enumerate(scores):
                 if score == high_score:
-                    print(story.sentences[i])
-                    print([(ent.text, ent.label_) for ent in story.sentences[i].ents])
-                
-                
+                    question.answer = story.sentences[i]
 
-
-
-
-        #for story_i in stories:
-        #     stories[story_i].print_attrs()
-        
-        #for question_file_i in questions:
-        #    for question_i in questions[question_file_i]:
-        #        question_i.print_attrs()
+    for question_file_i in questions:
+        print_responses(questions[question_file_i])
 
 
 if __name__ == "__main__":
     main()
-#nltk.download()
 
 
