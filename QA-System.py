@@ -166,6 +166,12 @@ def read_file_lines(fp):
 
 def print_responses(questions):
     for i, question in enumerate(questions):
+        word_list = question.answer.split()
+        for j, word in enumerate(word_list):
+            if word in question.question.text:
+                word_list[j] = ''
+        question.answer = ' '.join(word_list)
+
         print(f'QuestionID: {question.question_id}')
         print(f'Answer: {question.answer}\n')
 
@@ -223,6 +229,7 @@ def main():
                 ])
             words_from_question = set()
             verbs_from_question = set()
+
             for word in words_from_question_non_syms:
                 #did this help TODO
                 for syn in wordnet.synsets(word.lemma_):
@@ -282,7 +289,7 @@ def main():
                 #did not help I dont thing
                 for nps in noun_phrases_from_sentence:
                     for npq in noun_phrases_from_question:
-                        given_score += len(nps.intersection(npq)) * 5
+                        given_score += len(nps.intersection(npq)) * 2
 
                 # print(noun_phrases_from_question[0])
                 # for sentence_noun_phrase in noun_phrases_from_sentence:
@@ -340,7 +347,7 @@ def main():
             # print(question.question)
             for i, score in enumerate(scores):
                 if score == high_score:
-                    question.answer = story.sentences[i]
+                    question.answer = story.sentences[i].text
 
     for question_file_i in questions:
         print_responses(questions[question_file_i])
