@@ -5,7 +5,7 @@ pip install -U nltk
 pip install -U spacy
 python -m spacy download en_core_web_md
 
-python3 qa.py ./data/inputfile.txt > ./data/our.answers
+python3 qa.py ./data/inputfile.txt > ./data/ourtest.answers
 
 source .venv/bin/deactivate
 rm -rf .venv
