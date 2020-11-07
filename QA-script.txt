@@ -1,3 +1,9 @@
+if [$1 -eq 0]; then
+    echo "No argument for inputfile provided"
+    echo "Usage: ./QA-script.txt /path/to/inputfile.txt"
+    exit 1
+fi
+
 echo "Creating virtual environment"
 
 python3 -m venv .venv
