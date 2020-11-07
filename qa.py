@@ -1,51 +1,16 @@
 import sys
 import os
 import spacy
-from spacy.matcher import Matcher
-from spacy.lang.en import stop_words
-from nltk.corpus import wordnet
-import nltk
-from spacy.lang.en import English
-
-# token attrs:
-# - token.i: index
-# - token.text: word
-# - token.is_alpha: whether or not the text is alphabetical
-# - token.is_punct: whether or not the text is punctuation
-# - token.like_num: whether or not the text is numerical
-# - token.pos_: predicted part-of-speech for the text
-# - token.dep_: predicted dependency label
-# - token.head: parent token
-
-# doc attrs:
-# - doc[i] = token at index i of doc
-# - doc[i:j] = a span of tokens, can be treated as one token
-# - doc.ents = predicted named entities of a document
-
-# entity attrs:
-# - ent.text: word
-# - ent.label_: what the entity is
-
-# matcher attrs:
-# - [{'TEXT': 'iPhone'}, {'TEXT': 'X'}]: Match exact token texts
-# - [{'LOWER': 'iPhone'}, {'LOWER': 'x'}]: Match lexical attributes
-# - [{'LEMMA': 'buy'}, {'POS': 'NOUN'}]: Match any token attributes
-# - OP: ! (match 0 times), ? (match 0 or 1 times), + (match 1 or more times), * (match 0 or more times)
-# - matcher.add(<name of pattern>, <callback>, <pattern>)
-
-# spacy abilities:
-# - spacy.explain('GPE'): Countries, cities, states
-# - spacy.explain('NNP'): noun, proper singular
-
-# linguistic attributes in context:
-# - pos tags
-# - syntactic dependencies
-# - named entities
-#   - can be updated to perform better on our specific data
-
 from collections import OrderedDict
+from spacy.lang.en import stop_words
 
+import nltk
+try:
+    nltk.data.find('wordnet')
+except LookupError:
+    nltk.download('wordnet')
 
+from nltk.corpus import wordnet
 
 
 class Story:
@@ -178,7 +143,6 @@ def print_responses(questions):
 
 def main():
     nlp_engine = spacy.load('en_core_web_md')
-    matcher = Matcher(nlp_engine.vocab)
 
     inputfile_name = sys.argv[1]
 
