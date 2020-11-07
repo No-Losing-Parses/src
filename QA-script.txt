@@ -13,7 +13,7 @@ echo "Installing SpaCy Generic Model for NER, POS, etc."
 python -m spacy download en_core_web_md > /dev/null 2>&1
 
 echo "Running program"
-python3 qa.py ./data/inputfile.txt > ./data/ourtest.answers
+python3 qa.py $1 > ./data/ourtest.answers
 
 echo "Done. Removing virtual environment"
 rm -rf .venv
