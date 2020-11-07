@@ -1,4 +1,6 @@
-if [$# -eq 0]; then
+#!/bin/sh
+
+if $# -eq 0; then
     echo "No argument for inputfile provided"
     echo "Usage: ./QA-script.txt /path/to/inputfile.txt"
     exit 1
