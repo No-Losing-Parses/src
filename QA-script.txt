@@ -1,10 +1,19 @@
+echo "Creating virtual environment"
+
 python3 -m venv .venv
 source .venv/bin/activate
 
-pip install -U nltk
-pip install -U spacy
-python -m spacy download en_core_web_md
+echo "Installing nltk"
+pip install -U nltk > /dev/null
 
+echo "Installing SpaCy"
+pip install -U spacy > /dev/null
+
+echo "Installing SpaCy Generic Model for NER, POS, etc."
+python -m spacy download en_core_web_md > /dev/null
+
+echo "Running program"
 python3 qa.py ./data/inputfile.txt > ./data/ourtest.answers
 
+echo "Done. Removing virtual environment"
 rm -rf .venv
