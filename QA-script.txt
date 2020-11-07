@@ -10,7 +10,7 @@ echo "Installing SpaCy"
 pip install -U --disable-pip-version-check spacy > /dev/null
 
 echo "Installing SpaCy Generic Model for NER, POS, etc."
-python -W -m spacy download en_core_web_md > /dev/null
+python -W ignore -m spacy download en_core_web_md > /dev/null
 
 echo "Running program"
 python3 qa.py ./data/inputfile.txt > ./data/ourtest.answers
