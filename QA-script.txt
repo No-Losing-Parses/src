@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$#" -eq 0 ]; then
-    echo "No argument for inputfile provided"
-    echo "Usage: ./QA-script.txt /path/to/inputfile.txt"
+if [ "$#" -ne 2 ]; then
+    echo "Not enough arguments provided"
+    echo "Usage: ./QA-script.txt /path/to/inputfile.txt /path/to/out.answers"
     exit 1
 fi
 
@@ -21,7 +21,7 @@ echo "Installing SpaCy Generic Model for NER, POS, etc."
 python -m spacy download en_core_web_md > /dev/null 2>&1
 
 echo "Running program"
-python3 qa.py $1 > ./data/ourtest.answers
+python3 qa.py $1 > $2
 
 echo "Done. Removing virtual environment"
 rm -rf .venv

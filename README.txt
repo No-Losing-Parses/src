@@ -8,7 +8,7 @@ Jared Amen
 
 How to Run Our Code
 
-./QA-script.txt /path/to/inputfile.txt
+./QA-script.txt /path/to/inputfile.txt /path/to/out.answers
 cd data
 perl score-answers.pl ourtest.answers <answer_key_filename>
 
