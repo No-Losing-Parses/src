@@ -89,7 +89,7 @@ class Question:
             'WHEN': {'TIME', 'DATE'},
             #'WHY': [] usually what comes after because
             #'WHICH': [] could really be any of the types
-            'WHERE': {'LOC', 'FAC', 'GPE', 'PRODUCT', 'EVENT'},
+            'WHERE': {'LOC', 'FAC', 'ORG', 'GPE', 'PRODUCT', 'EVENT'},
             'MEASURE': {} #'PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL'
             #'HOW': []
         }
