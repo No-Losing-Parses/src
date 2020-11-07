@@ -2,7 +2,10 @@
 
 if [ "$#" -ne 2 ]; then
     echo "Not enough arguments provided"
-    echo "Usage: ./QA-script.txt /path/to/inputfile.txt /path/to/out.answers"
+    echo "Usage: ./QA-script.txt /path/to/inputfile.txt /path/to/<out.answers>"
+    echo ""
+
+    echo "Or to use the developset-v2 data: ./QA-script.txt ./data/inputfile.txt /path/to/<out.answers>"
     exit 1
 fi
 
