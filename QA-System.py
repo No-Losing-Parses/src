@@ -124,7 +124,7 @@ class Question:
             'WHEN': {'TIME', 'DATE'},
             #'WHY': [] usually what comes after because
             #'WHICH': [] could really be any of the types
-            'WHERE': {'LOC', 'FAC', 'ORG', 'GPE', 'PRODUCT', 'EVENT'},
+            'WHERE': {'LOC', 'FAC', 'GPE', 'PRODUCT', 'EVENT'},
             'MEASURE': {} #'PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL'
             #'HOW': []
         }
@@ -231,7 +231,6 @@ def main():
             verbs_from_question = set()
 
             for word in words_from_question_non_syms:
-                #did this help TODO
                 for syn in wordnet.synsets(word.lemma_):
                     for lm in syn.lemmas():
                         name = lm.name().split('_')
@@ -241,8 +240,6 @@ def main():
                 words_from_question.add(word.lemma_.lower())
 
             for word in verbs_from_question_non_syms:
-                #did this help TODO
-                #if word.pos_ == 'VERB':
                 for syn in wordnet.synsets(word.lemma_):
                     for lm in syn.lemmas():
                         name = lm.name().split('_')
@@ -250,12 +247,6 @@ def main():
                             if spot not in spacy.lang.en.stop_words.STOP_WORDS:
                                 verbs_from_question.add(spot.lower())
                 verbs_from_question.add(word.lemma_.lower())
-
-            # selected_np = None
-            # for np in question.question.noun_chunks:
-            #     if np.text not in stop_words.STOP_WORDS and np.text.upper() not in question.answer_types.keys():
-            #         selected_np = set(np.text.lower().split())
-            #         break
 
             noun_phrases_from_question = list(set(nc.text.lower().split()) for nc in question.question.noun_chunks)
 
@@ -265,10 +256,14 @@ def main():
             high_score = 0
             for sentence in story.sentences:
                 words_from_sentence = set([
-                word.lemma_.lower() for word in sentence if not word.is_stop and (word.is_alpha or word.is_digit or word.is_currency or not word.is_punct)
+                    word.lemma_.lower() for word in sentence
+                    if not word.is_stop and
+                    (word.is_alpha or word.is_digit or word.is_currency or not word.is_punct)
                 ])
+
                 verbs_from_sentence = set([
-                word.lemma_.lower() for word in sentence if not word.is_stop and word.pos_ == 'VERB'
+                    word.lemma_.lower() for word in sentence
+                    if not word.is_stop and word.pos_ == 'VERB'
                 ])
 
                 # selected_np = None
