@@ -73,12 +73,13 @@ class Question:
         self.difficulty = difficulty
         self.story = story
         self.type = None
+        self.sub_type = None
         self.answer_type = None
         self.answer = ""
         self.entities = [(ent.text, ent.label_) for ent in self.question.ents]
         self.types = {
             'WHO': {'whom', 'who', 'whose'}, 
-            'WHAT': ['what'],
+            'WHAT': ['what', 'which'],
             'WHEN': ['when'],
             'WHY': ['why'],
             'WHICH': ['which'],
@@ -94,9 +95,29 @@ class Question:
                 'new', 'old',
                 'heavy', 'light'
                 },
+            "DEFINITION": {
+                'is',
+                'are',
+                'was',
+                'were',
+                'isn\'t'
+                'aren\'t'
+                'wasn\'t'
+                'weren\'t'
+            }
+            "ACTION": {
+                'do',
+                'did',
+                'does',
+                'don\'t'
+                'didn\'t'
+                'doesn\'t'
+            }
             'HOW': ['how'],
         }
         self.measure_map = {
+            'much money': ['MONEY'],
+            'many years': ['DATE', 'TIME'],
             'many': ['CARDINAL', 'QUANTITY', 'PERCENT'], #'QUANTITY'
             'much': ['MONEY', 'QUANTITY', 'PERCENT'],
             'often': ['TIME', 'DATE', 'PERCENT'],
@@ -128,6 +149,7 @@ class Question:
             'MEASURE': {} #'PERCENT', 'MONEY', 'QUANTITY', 'CARDINAL', 'ORDINAL'
             #'HOW': []
         }
+        self.why_split_words = {'because', 'by', 'to'} #TODO anymore
         self.decide_on_question_type()
 
     def print_attrs(self):
@@ -155,8 +177,15 @@ class Question:
                     if q_type in self.answer_types:
                         self.answer_type = self.answer_types[q_type]
                     break
-            if self.type:
-                break
+
+        '''if self.type is 'WHAT' or self.type is 'HOW' or self.type is 'WHY':
+            next_word = self.words[word_pos + 1]
+            if next_word in self.object_words:
+                self.sub_type = 'OBJECT'
+            elif next_word in self.action_words:
+                self.sub_type = 'ACTION'
+            else:
+                self.sub_type = next_word'''
 
 
 def read_file_lines(fp):
@@ -326,6 +355,7 @@ def main():
             for i, score in enumerate(scores):
                 if score == high_score:
                     question.answer = story.sentences[i].text
+            question.answer = story.text
 
     for question_file_i in questions:
         print_responses(questions[question_file_i])
