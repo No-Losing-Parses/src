@@ -1,5 +1,5 @@
 HEADLINE: Blind mountaineer to climb Mount Logan
-DATE: 
+DATE: February 16, 2001
 STORYID: 2000-W06-5
 
 TEXT:

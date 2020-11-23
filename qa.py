@@ -162,7 +162,14 @@ def main():
         storyfile_name = f'{line_i}.story'
         storyfile_lines = read_file_lines(storyfile_name)
 
-        headline, date = ' '.join(storyfile_lines[0].split(': ')[1:]), storyfile_lines[1].split(': ')[1]
+        try:
+            headline, date = ' '.join(storyfile_lines[0].split(': ')[1:]), storyfile_lines[1].split(': ')[1]
+        except IndexError as e:
+            print(f'THIS WAS THE BREAKING HEADLINE: {storyfile_lines[0]}')
+            print(f'THIS WAS THE BREAKING DATE: {storyfile_lines[1]}')
+            print(f'THIS WAS THE BREAKING STORY ID: {storyfile_lines[2]}')
+            sys.exit(2)
+
         story_id, text = storyfile_lines[2].split(': ')[1], ' '.join(storyfile_lines[6:])
         story = Story(story_id, headline, date, nlp_engine(text))
 
@@ -308,17 +315,22 @@ def main():
             for i, score in enumerate(scores):
                 if score == high_score:
                     entities = [(ent.text, ent.label_) for ent in story.sentences[i].ents]
-                    if question.answer:
-                        if len(story.sentences[i].text) < len(question.answer):
-                            if question.answer_type:
-                                question.answer += ' '.join([e[0] for e in entities if e[1] in question.answer_type])
-                            else:
-                                question.answer += story.sentences[i].text + " "
+
+                    if question.answer_type:
+                        question.answer = ' '.join([e[0] for e in entities if e[1] in question.answer_type])
                     else:
-                        if question.answer_type:
-                            question.answer = ' '.join([e[0] for e in entities if e[1] in question.answer_type])
-                        else:
-                            question.answer = story.sentences[i].text + " "
+                        question.answer = story.sentences[i].text
+                    # if question.answer:
+                    #     if len(story.sentences[i].text) < len(question.answer):
+                    #         if question.answer_type:
+                    #             question.answer += ' '.join([e[0] for e in entities if e[1] in question.answer_type])
+                    #         else:
+                    #             question.answer += story.sentences[i].text + " "
+                    # else:
+                    #     if question.answer_type:
+                    #         question.answer = ' '.join([e[0] for e in entities if e[1] in question.answer_type])
+                    #     else:
+                    #         question.answer = story.sentences[i].text + " "
             #THIS actually brought down the score a tad
             '''
             if high_score == 0:
