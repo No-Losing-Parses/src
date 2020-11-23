@@ -286,8 +286,8 @@ def main():
                             found = True
                             break
                         index -= 1
-                    if not found:
-                        given_score = 0
+                    #if not found:
+                    #    given_score = 0
                 if question.type == 'MEASURE':
                     index = len(sentence_entities) + 2 if len(sentence_entities) + 2 > 5 else 5
                     found = False
@@ -297,16 +297,35 @@ def main():
                             found = True
                             break
                         index -= 1
-                    if not found:
-                        given_score = 0
+                    #if not found:
+                    #    given_score = 0
                 if given_score > high_score:
                     high_score = given_score
                 scores.append(given_score)
+            
             #print(words_from_question)
             # print(question.question)
             for i, score in enumerate(scores):
                 if score == high_score:
-                    question.answer = story.sentences[i].text
+                    entities = [(ent.text, ent.label_) for ent in story.sentences[i].ents]
+                    if question.answer:
+                        if len(story.sentences[i].text) < len(question.answer):
+                            if question.answer_type:
+                                question.answer += ' '.join([e[0] for e in entities if e[1] in question.answer_type])
+                            else:
+                                question.answer += story.sentences[i].text + " "
+                    else:
+                        if question.answer_type:
+                            question.answer = ' '.join([e[0] for e in entities if e[1] in question.answer_type])
+                        else:
+                            question.answer = story.sentences[i].text + " "
+            #THIS actually brought down the score a tad
+            '''
+            if high_score == 0:
+                question.answer = ""
+                for i in range(len(story.sentences)):
+                    question.answer += story.sentences[i].text + " "
+            '''
 
     for question_file_i in questions:
         print_responses(questions[question_file_i])
