@@ -13,27 +13,27 @@ except LookupError:
 from nltk.corpus import wordnet
 
 
-def prevent_sep_on_quotes(doc):
-    is_open_quote = False
-    sep = False
-
-    for token in doc:
-        if not sep:
-            token.is_sent_start = False
-
-        if token.text == '"':
-            if is_open_quote:
-                is_open_quote = False
-            else:
-                is_open_quote = True
-
-        sep = not is_open_quote
-
-    return doc
+# def prevent_sep_on_quotes(doc):
+#     is_open_quote = False
+#     sep = False
+#
+#     for token in doc:
+#         if not sep:
+#             token.is_sent_start = False
+#
+#         if token.text == '"':
+#             if is_open_quote:
+#                 is_open_quote = False
+#             else:
+#                 is_open_quote = True
+#
+#         sep = not is_open_quote
+#
+#     return doc
 
 
 nlp_engine = spacy.load('en_core_web_md')
-nlp_engine.add_pipe(prevent_sep_on_quotes, name='better-sentencizer', before='parser')
+# nlp_engine.add_pipe(prevent_sep_on_quotes, name='better-sentencizer', before='parser')
 
 class Story:
     def __init__(self, story_id, headline, date, text):
