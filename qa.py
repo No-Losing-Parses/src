@@ -137,10 +137,6 @@ def print_responses(questions):
             if word in question.question.text:
                 word_list[j] = ''
         question.answer = ' '.join(word_list)
-        '''
-        if question.answer.strip() == '':
-            question.print_attrs()
-        '''
         print(f'QuestionID: {question.question_id}')
         print(f'Answer: {question.answer}\n')
 
