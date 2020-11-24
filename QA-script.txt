@@ -18,7 +18,7 @@ echo "Installing nltk"
 pip install -U --disable-pip-version-check nltk > /dev/null
 
 echo "Installing SpaCy"
-pip install -U --disable-pip-version-check spacy > /dev/null
+pip install -U --disable-pip-version-check spacy==2.3.2 > /dev/null
 
 echo "Installing SpaCy Generic Model for NER, POS, etc."
 python -m spacy download en_core_web_md > /dev/null 2>&1
