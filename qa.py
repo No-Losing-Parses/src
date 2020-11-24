@@ -12,6 +12,29 @@ except LookupError:
 
 from nltk.corpus import wordnet
 
+
+def prevent_sep_on_quotes(doc):
+    is_open_quote = False
+    sep = False
+
+    for token in doc:
+        if not sep:
+            token.is_sent_start = False
+
+        if token.text == '"':
+            if is_open_quote:
+                is_open_quote = False
+            else:
+                is_open_quote = True
+
+        sep = not is_open_quote
+
+    return doc
+
+
+nlp_engine = spacy.load('en_core_web_md')
+nlp_engine.add_pipe(prevent_sep_on_quotes, name='better-sentencizer', before='parser')
+
 class Story:
     def __init__(self, story_id, headline, date, text):
         self.story_id = story_id
@@ -289,8 +312,6 @@ def match_another_way(question, head_noun, sentences, scores, words_from_questio
 
 
 def main():
-    nlp_engine = spacy.load('en_core_web_md')
-
     inputfile_name = sys.argv[1]
 
     inputfile_lines = read_file_lines(inputfile_name)
@@ -352,6 +373,10 @@ def main():
             #the following order was slightly better
             possible_answers.sort(
                 key=lambda x: x["overlap_score"], reverse=True)
+
+            # possible_answers.sort(
+            #     key=lambda x: x["similarity"], reverse=True
+            # )
             possible_answers.sort(
                 key=lambda x: x["overlap_weight_score"], reverse=True)
             question_dependencies = [0,0,0,0]
@@ -391,9 +416,10 @@ def main():
             question.answer = ' '.join(word_list)
             if not question.answer or question.answer == "." or question.answer.strip() == "":
                 question.answer = ""
+
                 for i, score in enumerate(scores):
                     if score == high_score:
-                        if question.answer:
+                        if question.answer and question.answer != '':
                             if len(story.sentences[i].text) < len(question.answer):
                                 if question.answer_type:
                                     question.answer += ' '.join([e[0] for e in entities if e[1] in question.answer_type])
@@ -404,7 +430,10 @@ def main():
                                 question.answer = ' '.join([e[0] for e in entities if e[1] in question.answer_type])
                             else:
                                 question.answer = story.sentences[i].text + " "
+
     for question_file_i in questions:
         print_responses(questions[question_file_i])
+
+
 if __name__ == "__main__":
     main()
